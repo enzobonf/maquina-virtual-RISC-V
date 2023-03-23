@@ -59,6 +59,8 @@ public:
     TipoInstrucao tipo;
 
     void parse(uint32_t instr) {
+
+        cout << "instr binário: " << bitset<32>(instr) << endl; // imprimir o valor binário de funct3
         // Extrai os campos da instrução
         opcode = static_cast<Opcode>(instr & 0x7f);
         switch(opcode){
@@ -92,6 +94,7 @@ public:
                 break;
             case TipoInstrucao::S:
                 funct3 = (instr >> 12) & 0b111;
+                cout << funct3 << endl;
                 rs1 = (instr >> 15) & 0b11111;
                 rs2 = (instr >> 20) & 0b11111;
                 imm = signExtend((instr >> 7) & 0b11111, 5) |
@@ -100,9 +103,11 @@ public:
             case TipoInstrucao::R:
                 rd = (instr >> 7) & 0b11111;
                 funct3 = (instr >> 12) & 0b111;
+                cout << "funct3 binário: " << bitset<3>(funct3) << endl; // imprimir o valor binário de funct3
                 rs1 = (instr >> 15) & 0b11111;
                 rs2 = (instr >> 20) & 0b11111;
                 funct7 = instr >> 25;
+                cout << "funct7: " << funct3 << '\n';
                 break;
             case TipoInstrucao::B:
                 funct3 = (instr >> 12) & 0b111;
@@ -146,22 +151,26 @@ public:
     }
 private:
     void executeR(Instrucao instr){
-        InstrucaoR op = static_cast<InstrucaoR>(instr.funct3);
-        switch(op){
+        InstrucaoR tipo_op = static_cast<InstrucaoR>(instr.funct3);
+        switch(tipo_op){
             case InstrucaoR::ADD:
                 reg[instr.rd] = reg[instr.rs1] + reg[instr.rs2];
+                printf("reg[%d] = reg[%d] + reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
 
             case InstrucaoR::SUB:
                 reg[instr.rd] = reg[instr.rs1] - reg[instr.rs2];
+                printf("reg[%d] = reg[%d] - reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
 
             case InstrucaoR::AND:
                 reg[instr.rd] = reg[instr.rs1] & reg[instr.rs2];
+                printf("reg[%d] = reg[%d] & reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
 
             case InstrucaoR::OR:
                 reg[instr.rd] = reg[instr.rs1] | reg[instr.rs2];
+                printf("reg[%d] = reg[%d] | reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
         }
 
@@ -173,9 +182,9 @@ private:
 
 int main(){
 
-    string operation = "01000000101101100000011110110011";
+    string operation = "00000000110001011110100100110011 ";
+    cout << "operation binário: " << operation << endl; // imprimir o valor binário de funct3
     uint32_t num = std::bitset<32>(operation).to_ulong();
-    std::cout << "Valor em decimal: " << num << std::endl;
     
     MaquinaVirtual maquina;
     maquina.run(operation);
