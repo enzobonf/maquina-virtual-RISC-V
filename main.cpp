@@ -39,13 +39,6 @@ int32_t signExtend(int32_t imm, uint8_t bits) {
 
 enum class TipoInstrucao { I, S, R, B };
 
-enum class InstrucaoR {
-    ADD = 0b000,
-    SUB = 0b010,
-    AND = 0b111,
-    OR = 0b110,
-};
-
 class Instrucao {
 public:
     Opcode opcode;
@@ -58,8 +51,8 @@ public:
 
     TipoInstrucao tipo;
 
-    void parse(uint32_t instr) {
-
+    void parse(string str_instr) {
+        uint32_t instr = std::bitset<32>(str_instr).to_ulong();
         //cout << "instr binário: " << bitset<32>(instr) << endl; // imprimir o valor binário de funct3
         // Extrai os campos da instrução
         opcode = static_cast<Opcode>(instr & 0x7f);
@@ -94,7 +87,6 @@ public:
                 break;
             case TipoInstrucao::S:
                 funct3 = (instr >> 12) & 0b111;
-                cout << funct3 << endl;
                 rs1 = (instr >> 15) & 0b11111;
                 rs2 = (instr >> 20) & 0b11111;
                 imm = signExtend((instr >> 7) & 0b11111, 5) |
@@ -127,29 +119,39 @@ public:
     std::vector<int> mem; // memória */
 
     int reg[32];
-    int mem[1024];
+    int mem[256];
     int pc;
+    vector<string> instrucoes;
 
-    MaquinaVirtual(){
+    MaquinaVirtual(vector<string> instrucoes){
         for(int i = 0; i < 20; i++) reg[i] = 0;
         for(int i = 0; i < 256; i++) mem[i] = 0;
+
+        this->instrucoes = instrucoes;
+        pc = 0;
     }
 
-    void run(string str_instr){
-        uint32_t num = std::bitset<32>(str_instr).to_ulong();
-        Instrucao instr;
-        instr.parse(num);
+    void run(){
+        while((pc / 4) < instrucoes.size()){
+            Instrucao instr;
+            instr.parse(instrucoes[pc / 4]);
 
-        switch (instr.tipo) {
-            case TipoInstrucao::R:
-                this->executeR(instr);
-                break;
-            case TipoInstrucao::I:
-                this->executeI(instr);
-                break;
-            default:
-                this->executeR(instr);
+            switch (instr.tipo) {
+                case TipoInstrucao::R:
+                    this->executeR(instr);
+                    break;
+                case TipoInstrucao::I:
+                    this->executeI(instr);
+                    break;
+                case TipoInstrucao::S:
+                    this->executeS(instr);
+                    break;
+                default:
+                    pc += 4;
+            }
         }
+
+        printRegistradores();
     }
 
     void printRegistradores(){
@@ -163,37 +165,48 @@ private:
             case 0b000:
                 if(instr.funct7 == 0){
                     reg[instr.rd] = reg[instr.rs1] + reg[instr.rs2];
-                    printf("reg[%d] = reg[%d] + reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                    printf("add -> reg[%d] = reg[%d] + reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 }
                 else{
                     reg[instr.rd] = reg[instr.rs1] - reg[instr.rs2];
-                    printf("reg[%d] = reg[%d] - reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                    printf("sub -> reg[%d] = reg[%d] - reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 }
                 break;
 
             case 0b111:
                 reg[instr.rd] = reg[instr.rs1] & reg[instr.rs2];
-                printf("reg[%d] = reg[%d] & reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                printf("and -> reg[%d] = reg[%d] & reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
 
             case 0b110:
                 reg[instr.rd] = reg[instr.rs1] | reg[instr.rs2];
-                printf("reg[%d] = reg[%d] | reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                printf("or -> reg[%d] = reg[%d] | reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
         }
 
         pc += 4;
-        printf("funct3 = %d | rd = %d | rs1 = %d | rs2 = %d\n", instr.funct3, instr.rd, instr.rs1, instr.rs2);
+        //printf("funct3 = %d | rd = %d | rs1 = %d | rs2 = %d\n", instr.funct3, instr.rd, instr.rs1, instr.rs2);
     }
 
     void executeI(Instrucao instr){
+        //printf("imm: %d | rs1 = %d | funct3 = %d | rd = %d\n", instr.imm, instr.rs1, instr.funct3, instr.rd);
         if(instr.funct3 == 0){
             reg[instr.rd] = reg[instr.rs1] + instr.imm;
-            printf("reg[%d] = reg[%d] + %d\n", instr.rd, instr.rs1, instr.imm);
+            printf("addi -> reg[%d] = reg[%d] + %d\n", instr.rd, instr.rs1, instr.imm);
         }
-
+        else{
+            reg[instr.rd] = mem[instr.imm + reg[instr.rs1]];
+            printf("lw -> reg[%d] = mem[%d]\n", instr.rd, instr.imm + reg[instr.rs1]);
+        }
         pc += 4;
-        printRegistradores();
+    }
+
+    void executeS(Instrucao instr){
+        if(instr.funct3 == 0b010){
+            mem[instr.imm + reg[instr.rs1]] = reg[instr.rd];
+            printf("sw -> mem[%d] = reg[%d]\n", instr.imm + reg[instr.rs1], instr.rs2);
+        }
+        pc += 4;
     }
     
 };
@@ -201,9 +214,16 @@ private:
 int main(){
 
     string operation = "00000000001100000000001010010011";
+    vector<string> instrucoes = 
+    {"00000000001100000000001010010011", "00000000101000000000001100010011", 
+    "00000001010000000000010100010011", "00000000010101010010000000100011", 
+    "00000000011001010010001000100011", "00000000000001010010010110000011", 
+    "00000000010001010010011000000011", "00000000110001011000011100110011", 
+    "01000000101101100000011110110011", "01000000110001011000100000110011", 
+    "00000000101101100111100010110011", "00000000110001011110100100110011"};
     
-    MaquinaVirtual maquina;
-    maquina.run(operation);
+    MaquinaVirtual *maquina = new MaquinaVirtual(instrucoes);
+    maquina->run();
 
 
 }
