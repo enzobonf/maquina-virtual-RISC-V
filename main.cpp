@@ -27,14 +27,10 @@ enum class Opcode {
 };
 
 int32_t signExtend(int32_t imm, uint8_t bits) {
-    uint32_t mask = 0xFFFFFFFF >> (32 - bits);
-    if (imm & (1 << (bits - 1))) {
-        // O valor imediato é negativo, precisamos preencher com 1's.
-        return imm | ~mask;
-    } else {
-        // O valor imediato é positivo, preenchemos com 0's.
-        return imm & mask;
-    }
+    //uint32_t mask = 0xFFFFFFFF >> (32 - bits);
+    uint32_t shift = 32 - bits;
+    int32_t extended = (imm << shift) >> shift;
+    return extended;
 }
 
 enum class TipoInstrucao { I, S, R, B };
@@ -45,9 +41,9 @@ public:
     uint32_t rs1;
     uint32_t rs2;
     uint32_t rd;
-    uint32_t imm;
     uint32_t funct3;
     uint32_t funct7;
+    uint32_t imm;
 
     TipoInstrucao tipo;
 
@@ -67,7 +63,7 @@ public:
                 break;
 
             case Opcode::BNE:
-                tipo = TipoInstrucao::S;
+                tipo = TipoInstrucao::B;
                 break;
             
             case Opcode::SW:
@@ -120,7 +116,7 @@ public:
 
     int reg[32];
     int mem[256];
-    int pc;
+    uint32_t pc;
     vector<string> instrucoes;
 
     MaquinaVirtual(vector<string> instrucoes){
@@ -139,15 +135,19 @@ public:
             switch (instr.tipo) {
                 case TipoInstrucao::R:
                     this->executeR(instr);
+                    pc += 4;
                     break;
                 case TipoInstrucao::I:
                     this->executeI(instr);
+                    pc += 4;
                     break;
                 case TipoInstrucao::S:
                     this->executeS(instr);
-                    break;
-                default:
                     pc += 4;
+                    break;
+                case TipoInstrucao::B:
+                    this->executeB(instr);
+                    break;
             }
         }
 
@@ -158,6 +158,7 @@ public:
         for(int i = 0; i < 20; i++){
             printf("reg[%d] = %d\n", i, reg[i]);
         }
+        printf("pc %u\n", pc);
     }
 private:
     void executeR(Instrucao instr){
@@ -184,7 +185,6 @@ private:
                 break;
         }
 
-        pc += 4;
         //printf("funct3 = %d | rd = %d | rs1 = %d | rs2 = %d\n", instr.funct3, instr.rd, instr.rs1, instr.rs2);
     }
 
@@ -198,7 +198,6 @@ private:
             reg[instr.rd] = mem[instr.imm + reg[instr.rs1]];
             printf("lw -> reg[%d] = mem[%d]\n", instr.rd, instr.imm + reg[instr.rs1]);
         }
-        pc += 4;
     }
 
     void executeS(Instrucao instr){
@@ -206,23 +205,34 @@ private:
             mem[instr.imm + reg[instr.rs1]] = reg[instr.rd];
             printf("sw -> mem[%d] = reg[%d]\n", instr.imm + reg[instr.rs1], instr.rs2);
         }
-        pc += 4;
     }
-    
+
+    void executeB(Instrucao instr){
+        printf("imm: %d | rs2 = %u | rs1 = %u | funct3 = %u\n", instr.imm, instr.rs2, instr.rs1, instr.funct3);
+        if(instr.funct3 == 0){
+            if(reg[instr.rs2] == reg[instr.rs1]){
+                pc += (int)(instr.imm / 4);
+                //printf("beq -> pc + %d\n", (instr.imm / ));
+            }
+            else{
+                pc += 4;
+            }
+        }
+    }
 };
 
 int main(){
 
     string operation = "00000000001100000000001010010011";
     vector<string> instrucoes = 
-    {"00000000001100000000001010010011", "00000000101000000000001100010011", 
+    {/* "00000000001100000000001010010011", "00000000101000000000001100010011", 
     "00000001010000000000010100010011", "00000000010101010010000000100011", 
     "00000000011001010010001000100011", "00000000000001010010010110000011", 
     "00000000010001010010011000000011", "00000000110001011000011100110011", 
     "01000000101101100000011110110011", "01000000110001011000100000110011", 
-    "00000000101101100111100010110011", "00000000110001011110100100110011"};
+    "00000000101101100111100010110011", "00000000110001011110100100110011", */"11111111000010000000101011100011"};
     
-    MaquinaVirtual *maquina = new MaquinaVirtual(instrucoes);
+    MaquinaVirtual *maquina = new MaquinaVirtual(instrucoes); 
     maquina->run();
 
 
