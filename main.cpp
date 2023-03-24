@@ -60,7 +60,7 @@ public:
 
     void parse(uint32_t instr) {
 
-        cout << "instr binário: " << bitset<32>(instr) << endl; // imprimir o valor binário de funct3
+        //cout << "instr binário: " << bitset<32>(instr) << endl; // imprimir o valor binário de funct3
         // Extrai os campos da instrução
         opcode = static_cast<Opcode>(instr & 0x7f);
         switch(opcode){
@@ -103,11 +103,11 @@ public:
             case TipoInstrucao::R:
                 rd = (instr >> 7) & 0b11111;
                 funct3 = (instr >> 12) & 0b111;
-                cout << "funct3 binário: " << bitset<3>(funct3) << endl; // imprimir o valor binário de funct3
+                //cout << "funct3 binário: " << bitset<3>(funct3) << endl; // imprimir o valor binário de funct3
                 rs1 = (instr >> 15) & 0b11111;
                 rs2 = (instr >> 20) & 0b11111;
                 funct7 = instr >> 25;
-                cout << "funct7: " << funct3 << '\n';
+                //cout << "funct7: " << funct3 << '\n';
                 break;
             case TipoInstrucao::B:
                 funct3 = (instr >> 12) & 0b111;
@@ -126,9 +126,14 @@ public:
     /* std::vector<int> reg; // registradores
     std::vector<int> mem; // memória */
 
-    int reg[50];
+    int reg[32];
     int mem[1024];
     int pc;
+
+    MaquinaVirtual(){
+        for(int i = 0; i < 20; i++) reg[i] = 0;
+        for(int i = 0; i < 256; i++) mem[i] = 0;
+    }
 
     void run(string str_instr){
         uint32_t num = std::bitset<32>(str_instr).to_ulong();
@@ -139,52 +144,63 @@ public:
             case TipoInstrucao::R:
                 this->executeR(instr);
                 break;
+            case TipoInstrucao::I:
+                this->executeI(instr);
+                break;
             default:
                 this->executeR(instr);
         }
     }
 
     void printRegistradores(){
-        for(int i = 0; i < 50; i++){
+        for(int i = 0; i < 20; i++){
             printf("reg[%d] = %d\n", i, reg[i]);
         }
     }
 private:
     void executeR(Instrucao instr){
-        InstrucaoR tipo_op = static_cast<InstrucaoR>(instr.funct3);
-        switch(tipo_op){
-            case InstrucaoR::ADD:
-                reg[instr.rd] = reg[instr.rs1] + reg[instr.rs2];
-                printf("reg[%d] = reg[%d] + reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+        switch(instr.funct3){
+            case 0b000:
+                if(instr.funct7 == 0){
+                    reg[instr.rd] = reg[instr.rs1] + reg[instr.rs2];
+                    printf("reg[%d] = reg[%d] + reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                }
+                else{
+                    reg[instr.rd] = reg[instr.rs1] - reg[instr.rs2];
+                    printf("reg[%d] = reg[%d] - reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
+                }
                 break;
 
-            case InstrucaoR::SUB:
-                reg[instr.rd] = reg[instr.rs1] - reg[instr.rs2];
-                printf("reg[%d] = reg[%d] - reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
-                break;
-
-            case InstrucaoR::AND:
+            case 0b111:
                 reg[instr.rd] = reg[instr.rs1] & reg[instr.rs2];
                 printf("reg[%d] = reg[%d] & reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
 
-            case InstrucaoR::OR:
+            case 0b110:
                 reg[instr.rd] = reg[instr.rs1] | reg[instr.rs2];
                 printf("reg[%d] = reg[%d] | reg[%d]\n", instr.rd, instr.rs1, instr.rs2);
                 break;
         }
 
-            printf("funct3 = %d | rd = %d | rs1 = %d | rs2 = %d\n", instr.funct3, instr.rd, instr.rs1, instr.rs2);
-
-        //printRegistradores();
+        pc += 4;
+        printf("funct3 = %d | rd = %d | rs1 = %d | rs2 = %d\n", instr.funct3, instr.rd, instr.rs1, instr.rs2);
     }
+
+    void executeI(Instrucao instr){
+        if(instr.funct3 == 0){
+            reg[instr.rd] = reg[instr.rs1] + instr.imm;
+            printf("reg[%d] = reg[%d] + %d\n", instr.rd, instr.rs1, instr.imm);
+        }
+
+        pc += 4;
+        printRegistradores();
+    }
+    
 };
 
 int main(){
 
-    string operation = "00000000110001011110100100110011 ";
-    cout << "operation binário: " << operation << endl; // imprimir o valor binário de funct3
-    uint32_t num = std::bitset<32>(operation).to_ulong();
+    string operation = "00000000001100000000001010010011";
     
     MaquinaVirtual maquina;
     maquina.run(operation);
