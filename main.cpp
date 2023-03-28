@@ -4,15 +4,11 @@
 #include <string>
 #include <bitset>
 #include <cstdio>
+#include "arquivo.h"
 
 using namespace std;
 
-struct Estado {
-    std::vector<int> reg; // registradores
-    std::vector<int> mem; // memória
-    int pc;               // contador de programa
-};
-
+enum class TipoInstrucao { I, S, R, B };
 enum class Opcode {
     ADD = 51,
     SUB = 51,
@@ -23,7 +19,6 @@ enum class Opcode {
     SW = 35,
     BEQ = 99,
     BNE = 99,
-    //UNKNOWN
 };
 
 int32_t signExtend(int32_t imm, uint8_t bits) {
@@ -32,8 +27,6 @@ int32_t signExtend(int32_t imm, uint8_t bits) {
     int32_t extended = (imm << shift) >> shift;
     return extended;
 }
-
-enum class TipoInstrucao { I, S, R, B };
 
 class Instrucao {
 public:
@@ -115,20 +108,24 @@ public:
     std::vector<int> mem; // memória */
 
     int reg[32];
-    int mem[256];
-    uint32_t pc;
+    int mem[32];
+    int pc;
     vector<string> instrucoes;
 
     MaquinaVirtual(vector<string> instrucoes){
-        for(int i = 0; i < 20; i++) reg[i] = 0;
-        for(int i = 0; i < 256; i++) mem[i] = 0;
+        for(int i = 0; i < 32; i++) reg[i] = 0;
+        for(int i = 0; i < 32; i++) mem[i] = 0;
 
         this->instrucoes = instrucoes;
         pc = 0;
     }
 
     void run(){
-        while((pc / 4) < instrucoes.size()){
+        while((pc / 4) < instrucoes.size() && pc >= 0){
+            cout << "Pressione enter para rodar a proxima instrucao ou ESC para sair" << '\n';
+            
+            if(getchar() == 'q') return;
+
             Instrucao instr;
             instr.parse(instrucoes[pc / 4]);
 
@@ -149,17 +146,21 @@ public:
                     this->executeB(instr);
                     break;
             }
+
+            cout << "pc: " << pc << '\n';
         }
 
-        printRegistradores();
+        printRegistradoresEMemoria();
+        //printMemoria();
     }
 
-    void printRegistradores(){
-        for(int i = 0; i < 20; i++){
-            printf("reg[%d] = %d\n", i, reg[i]);
+    void printRegistradoresEMemoria(){
+        cout << '\n';
+        for(int i = 0; i < 32; i++){
+            printf("reg[%2d] = %2d || mem[%d] = %d\n\n", i, reg[i], i, mem[i]);
         }
-        printf("pc %u\n", pc);
     }
+
 private:
     void executeR(Instrucao instr){
         switch(instr.funct3){
@@ -202,7 +203,7 @@ private:
 
     void executeS(Instrucao instr){
         if(instr.funct3 == 0b010){
-            mem[instr.imm + reg[instr.rs1]] = reg[instr.rd];
+            mem[instr.imm + reg[instr.rs1]] = reg[instr.rs2];
             printf("sw -> mem[%d] = reg[%d]\n", instr.imm + reg[instr.rs1], instr.rs2);
         }
     }
@@ -210,9 +211,21 @@ private:
     void executeB(Instrucao instr){
         printf("imm: %d | rs2 = %u | rs1 = %u | funct3 = %u\n", instr.imm, instr.rs2, instr.rs1, instr.funct3);
         if(instr.funct3 == 0){
-            if(reg[instr.rs2] == reg[instr.rs1]){
-                pc += (int)(instr.imm / 4);
-                //printf("beq -> pc + %d\n", (instr.imm / ));
+            int notequal = reg[instr.rs2] == reg[instr.rs1];
+            printf("beq -> (reg[%d] == reg[%d]) = %d\n", instr.rs2, instr.rs1, notequal);
+            if(notequal){
+                printf("pc + %d\n", instr.imm);
+                pc += instr.imm;
+            }
+            else{
+                pc += 4;
+            }
+        }
+        else{
+            int not_equal = reg[instr.rs2] != reg[instr.rs1];
+            printf("bne -> (reg[%d] != reg[%d]) = %d\n", instr.rs2, instr.rs1, not_equal);
+            if(not_equal){
+                pc += instr.imm;
             }
             else{
                 pc += 4;
@@ -223,15 +236,20 @@ private:
 
 int main(){
 
-    string operation = "00000000001100000000001010010011";
+    /* string operation = "00000000001100000000001010010011";
     vector<string> instrucoes = 
-    {/* "00000000001100000000001010010011", "00000000101000000000001100010011", 
+    {"00000000001100000000001010010011", "00000000101000000000001100010011", 
     "00000001010000000000010100010011", "00000000010101010010000000100011", 
     "00000000011001010010001000100011", "00000000000001010010010110000011", 
     "00000000010001010010011000000011", "00000000110001011000011100110011", 
     "01000000101101100000011110110011", "01000000110001011000100000110011", 
-    "00000000101101100111100010110011", "00000000110001011110100100110011", */"11111111000010000000101011100011"};
-    
+    "00000000101101100111100010110011", "00000000110001011110100100110011","00000001001010001000100001100011"}; */
+
+    Arquivo *arq = new Arquivo("teste3.txt");
+    auto instrucoes = arq->lerInstrucoes();
+
+    cout << instrucoes.size() << '\n';
+
     MaquinaVirtual *maquina = new MaquinaVirtual(instrucoes); 
     maquina->run();
 
