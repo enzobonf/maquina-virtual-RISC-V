@@ -1,13 +1,13 @@
 #include <iostream>
 #include <vector>
+#include <cstdint>
 #include <string>
 #include <bitset>
-
+#include <cstdio>
 #include "arquivo.h"
 #include "maquinavirtual.h"
 
 using namespace std;
-
 
 int main(){
 
@@ -20,7 +20,7 @@ int main(){
     "01000000101101100000011110110011", "01000000110001011000100000110011", 
     "00000000101101100111100010110011", "00000000110001011110100100110011","00000001001010001000100001100011"}; */
 
-    Arquivo *arq = new Arquivo("teste3.txt");
+    Arquivo *arq = new Arquivo("teste1.txt");
     auto instrucoes = arq->lerInstrucoes();
 
     cout << instrucoes.size() << '\n';

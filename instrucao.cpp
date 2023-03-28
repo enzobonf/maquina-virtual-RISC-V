@@ -63,3 +63,10 @@ void Instrucao::parse(string str_instr) {
             break;
     }
 }
+
+int32_t signExtend(int32_t imm, uint8_t bits) {
+    //uint32_t mask = 0xFFFFFFFF >> (32 - bits);
+    uint32_t shift = 32 - bits;
+    int32_t extended = (imm << shift) >> shift;
+    return extended;
+}

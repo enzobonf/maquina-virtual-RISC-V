@@ -39,7 +39,7 @@ void MaquinaVirtual::run(){
         cout << "pc: " << pc << '\n';
     }
 
-    printRegistradores();
+    printRegistradoresEMemoria();
 }
 
 void MaquinaVirtual::executeR(Instrucao instr){
@@ -108,5 +108,12 @@ void MaquinaVirtual::executeB(Instrucao instr){
         else{
             pc += 4;
         }
+    }
+}
+
+void MaquinaVirtual::printRegistradoresEMemoria(){
+    cout << '\n';
+    for(int i = 0; i < 32; i++){
+        printf("reg[%2d] = %2d || mem[%d] = %d\n\n", i, reg[i], i, mem[i]);
     }
 }

@@ -20,7 +20,7 @@ private:
     void executeS(Instrucao instr);
     void executeB(Instrucao instr);
 
-    void printRegistradores();
+    void printRegistradoresEMemoria();
 
     int reg[32];
     int mem[32];
