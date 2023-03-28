@@ -1,6 +1,6 @@
 #include "maquinavirtual.h"
-#include <cstdint>
-#include <cstdio>
+
+using namespace std;
 
 MaquinaVirtual::MaquinaVirtual(vector<string> instrucoes){
     for(int i = 0; i < 32; i++) reg[i] = 0;

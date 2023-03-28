@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <cstdint>
+#include <cstdio>
 #include "instrucao.h"
 
 using namespace std;
