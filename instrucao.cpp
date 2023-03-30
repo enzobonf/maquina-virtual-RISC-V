@@ -5,7 +5,6 @@ using namespace std;
 
 void Instrucao::parse(string str_instr) {
     uint32_t instr = std::bitset<32>(str_instr).to_ulong();
-    //cout << "instr binário: " << bitset<32>(instr) << endl; // imprimir o valor binário de funct3
     // Extrai os campos da instrução
     opcode = static_cast<Opcode>(instr & 0x7f);
     switch(opcode){
@@ -47,11 +46,9 @@ void Instrucao::parse(string str_instr) {
         case TipoInstrucao::R:
             rd = (instr >> 7) & 0b11111;
             funct3 = (instr >> 12) & 0b111;
-            //cout << "funct3 binário: " << bitset<3>(funct3) << endl; // imprimir o valor binário de funct3
             rs1 = (instr >> 15) & 0b11111;
             rs2 = (instr >> 20) & 0b11111;
             funct7 = instr >> 25;
-            //cout << "funct7: " << funct3 << '\n';
             break;
         case TipoInstrucao::B:
             funct3 = (instr >> 12) & 0b111;

@@ -11,13 +11,18 @@ using namespace std;
 
 int main(){
 
-    Arquivo *arq = new Arquivo("teste3.txt");
-    auto instrucoes = arq->lerInstrucoes();
+    string nomeArq;
+    cout << "Digite o nome do arquivo das instrucoes: ";
+    cin >> nomeArq;
+    cin.ignore(); // limpa o buffer do cin
 
-    cout << instrucoes.size() << '\n';
+    Arquivo *arq = new Arquivo(nomeArq);
+    auto instrucoes = arq->lerInstrucoes();
 
     MaquinaVirtual *maquina = new MaquinaVirtual(instrucoes); 
     maquina->run();
 
+    cout << "Pressione enter para sair do programa..." << '\n';
+    getchar();
 
 }

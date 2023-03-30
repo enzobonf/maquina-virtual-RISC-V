@@ -18,6 +18,15 @@ private:
     int reg[32];
     int mem[32];
     int pc;
+
+    int Branch;
+    int MemRead;
+    int MemWrite;
+    int MemToReg;
+    int RegWrite;
+    int ALUOp;
+    int ALUSrc;
+
     vector<string> instrucoes;
     
     void executeR(Instrucao instr);
@@ -25,7 +34,9 @@ private:
     void executeS(Instrucao instr);
     void executeB(Instrucao instr);
 
-    void printRegistradoresEMemoria();
+    void printRegistradores();
+    void printMemoria();
+    void printControl();
 };
 
 #endif

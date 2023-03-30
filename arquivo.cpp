@@ -13,7 +13,7 @@ vector<string> Arquivo::lerInstrucoes(){
 
     while(getline(fin, linha)){
         if(linha.size() == 32){
-            cout << linha << '\n';
+            //cout << linha << '\n';
             instrucoes.push_back(linha);
         }
     }
