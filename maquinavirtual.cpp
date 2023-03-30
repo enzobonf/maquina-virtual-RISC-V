@@ -36,10 +36,10 @@ void MaquinaVirtual::run(){
                 break;
         }
 
+        printRegistradoresEMemoria();
         cout << "pc: " << pc << '\n';
     }
 
-    printRegistradoresEMemoria();
 }
 
 void MaquinaVirtual::executeR(Instrucao instr){
@@ -89,9 +89,9 @@ void MaquinaVirtual::executeS(Instrucao instr){
 void MaquinaVirtual::executeB(Instrucao instr){
     printf("imm: %d | rs2 = %u | rs1 = %u | funct3 = %u\n", instr.imm, instr.rs2, instr.rs1, instr.funct3);
     if(instr.funct3 == 0){
-        int notequal = reg[instr.rs2] == reg[instr.rs1];
-        printf("beq -> (reg[%d] == reg[%d]) = %d\n", instr.rs2, instr.rs1, notequal);
-        if(notequal){
+        int equal = reg[instr.rs2] == reg[instr.rs1];
+        printf("beq -> (reg[%d] == reg[%d]) = %d\n", instr.rs2, instr.rs1, equal);
+        if(equal){
             printf("pc + %d\n", instr.imm);
             pc += instr.imm;
         }

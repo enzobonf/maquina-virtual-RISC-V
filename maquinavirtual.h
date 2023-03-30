@@ -15,17 +15,17 @@ public:
     MaquinaVirtual(vector<string> instrucoes);
     void run();
 private:
+    int reg[32];
+    int mem[32];
+    int pc;
+    vector<string> instrucoes;
+    
     void executeR(Instrucao instr);
     void executeI(Instrucao instr);
     void executeS(Instrucao instr);
     void executeB(Instrucao instr);
 
     void printRegistradoresEMemoria();
-
-    int reg[32];
-    int mem[32];
-    int pc;
-    vector<string> instrucoes;
 };
 
 #endif

@@ -18,9 +18,6 @@ enum class Opcode {
 
 class Instrucao {
 public:
-    Instrucao() = default;
-    void parse(std::string str_instr);
-
     Opcode opcode;
     uint32_t rs1;
     uint32_t rs2;
@@ -30,6 +27,9 @@ public:
     uint32_t imm;
 
     TipoInstrucao tipo;
+
+    Instrucao() = default;
+    void parse(std::string str_instr);
 };
 
 int32_t signExtend(int32_t imm, uint8_t bits);
