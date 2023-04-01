@@ -12,6 +12,8 @@ using namespace std;
 int main(){
 
     string nomeArq;
+
+    cout << "\nTrabalho de Organizacao e Arquitetura de Computadores\n" << "Enzo Bonfante\n\n";
     cout << "Digite o nome do arquivo das instrucoes: ";
     cin >> nomeArq;
     cin.ignore(); // limpa o buffer do cin
