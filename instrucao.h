@@ -24,7 +24,7 @@ public:
     uint32_t rd;
     uint32_t funct3;
     uint32_t funct7;
-    uint32_t imm;
+    int32_t imm;
 
     TipoInstrucao tipo;
 
