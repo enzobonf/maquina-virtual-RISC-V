@@ -1,4 +1,5 @@
 #include "instrucao.h"
+#include <cstdio>
 #include <bitset>
 
 using namespace std;
@@ -54,15 +55,21 @@ void Instrucao::parse(string str_instr) {
             funct3 = (instr >> 12) & 0b111;
             rs1 = (instr >> 15) & 0b11111;
             rs2 = (instr >> 20) & 0b11111;
-            imm = signExtend((instr >> 7) & 0b11111, 5) |
-                    (signExtend((instr >> 25) & 0b111111, 6) << 5) |
-                    (signExtend(instr >> 31, 1) << 11);
+            
+            imm = ((instr >> 7) & 0b11110 |
+                  ((instr >> 20 & 0b11111100000)) |
+                  ((instr << 4 & 0b100000000000)) |
+                  ((instr >> 19 & 0b1000000000000)));
+                
+            if(instr >> 31 == 1) {
+                imm += 0b11111111111111111110000000000000;
+            }
+
             break;
     }
 }
 
 int32_t signExtend(int32_t imm, uint8_t bits) {
-    //uint32_t mask = 0xFFFFFFFF >> (32 - bits);
     uint32_t shift = 32 - bits;
     int32_t extended = (imm << shift) >> shift;
     return extended;
